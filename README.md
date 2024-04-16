@@ -1,5 +1,7 @@
 # Golang Template
 
+![pre-commit](https://github.com/khiemledev/golang-api-template/actions/workflows/pre-commit.yaml/badge.svg)
+
 ## Quick start
 
 Prerequisite:
