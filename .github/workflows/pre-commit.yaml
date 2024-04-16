@@ -8,6 +8,9 @@ jobs:
   pre-commit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '^1.22.1' # The Go version to download (if necessary) and use.
       - uses: actions/setup-python@v3
       - uses: pre-commit/action@v3.0.0
