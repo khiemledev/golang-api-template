@@ -1,4 +1,4 @@
-# Golang Template
+# Golang API Template
 
 ![pre-commit](https://github.com/khiemledev/golang-api-template/actions/workflows/pre-commit.yaml/badge.svg)
 
@@ -25,13 +25,13 @@ Clone this repo and install dependencies:
 1. Clone this repo
 
     ```bash
-    git clone https://github.com/khiemledev/golang_template.git
+    git clone https://github.com/khiemledev/golang-api-template.git
     ```
 
-2. Change directory into `golang_template`
+2. Change directory into `golang-api-template`
 
     ```bash
-    cd golang_template
+    cd golang-api-template
     ```
 
 3. Install dependencies Go dependencies
