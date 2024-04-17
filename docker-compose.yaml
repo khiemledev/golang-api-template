@@ -7,4 +7,9 @@ services:
       - '8080:8080' # change port here
     volumes:
       - ./logs/:/app/logs/
-      - ./app.env:/app/app.env
+      - ./cmd/api/app.env:/app/app.env
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:8080/health-check"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
