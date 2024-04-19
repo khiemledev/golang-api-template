@@ -53,6 +53,11 @@ Clone this repo and install dependencies:
     curl http://127.0.0.1:8080
     ```
 
+
+You can modify environment in the file `cmd/api/app.env`.
+
+
+
 ## Generate Swagger documentation
 
 First, you need to install [swag](https://github.com/swaggo/swag#how-to-use-it-with-gin):
@@ -110,5 +115,14 @@ swag init
 To start the server using docker, using the following command:
 
 ```bash
+# Create network
+docker network create golang-api-template-network
+
+# Start database
+docker compose -f docker/docker-compose-postgres.yaml up -d
+
+# Start the server
 docker compose -f docker/docker-compose.yaml up -d
 ```
+
+You can modify environment in the file `docker/app.env`.
