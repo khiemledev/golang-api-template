@@ -103,3 +103,12 @@ swag init
     ```bash
     pre-commit run --all-files
     ```
+
+
+## Docker
+
+To start the server using docker, using the following command:
+
+```bash
+docker compose -f docker/docker-compose.yaml up -d
+```

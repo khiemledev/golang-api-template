@@ -1,4 +1,4 @@
-package utils
+package util
 
 import (
 	"github.com/spf13/viper"
@@ -6,15 +6,25 @@ import (
 
 // Config stores all application configs loaded from file or env variables
 type Config struct {
+	// HTTP Server
 	HTTPServerAddress string `mapstructure:"HTTP_SERVER_ADDRESS"`
 
+	// Swagger
 	SwaggerURL string `mapstructure:"SWAGGER_URL"`
 
+	// Logging
 	LogFilename   string `mapstructure:"LOG_FILENAME"`
 	LogMaxSize    int    `mapstructure:"LOG_MAX_SIZE"` // in megabytes
 	LogMaxBackups int    `mapstructure:"LOG_MAX_BACKUPS"`
 	LogMaxAge     int    `mapstructure:"LOG_MAX_AGE"`
 	LogCompress   bool   `mapstructure:"LOG_COMPRESS"`
+
+	// Database
+	DBHost     string `mapstructure:"DB_HOST"`
+	DBUser     string `mapstructure:"DB_USER"`
+	DBPassword string `mapstructure:"DB_PASSWORD"`
+	DBName     string `mapstructure:"DB_NAME"`
+	DBPort     int    `mapstructure:"DB_PORT"`
 }
 
 // Load config from env file and return Config
