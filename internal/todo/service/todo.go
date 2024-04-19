@@ -2,7 +2,6 @@ package service
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 	"khiemle.dev/golang-api-template/internal/todo/model"
 )
@@ -11,7 +10,7 @@ type TodoService interface {
 	CreateTodo(c *gin.Context, name string, description string) (*model.Todo, error)
 	GetById(c *gin.Context, id int) (*model.Todo, error)
 	UpdateTodo(c *gin.Context, id int, name string, description string) (*model.Todo, error)
-	ListTodo(c *gin.Context) []model.Todo
+	ListTodo(c *gin.Context) ([]model.Todo, error)
 	DeleteTodo(c *gin.Context, id int) error
 }
 
@@ -82,12 +81,13 @@ func (s *todoService) UpdateTodo(c *gin.Context, id int, name string, descriptio
 }
 
 // ListTodo
-func (s *todoService) ListTodo(c *gin.Context) []model.Todo {
-	log.Info().Msg("I'm ok")
+func (s *todoService) ListTodo(c *gin.Context) ([]model.Todo, error) {
 	todos := []model.Todo{}
-	s.db.Find(&todos)
-
-	return todos
+	tx := s.db.Find(&todos)
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+	return todos, nil
 }
 
 // DeleteTodo

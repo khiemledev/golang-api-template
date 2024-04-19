@@ -142,7 +142,15 @@ func (h *todoHandler) UpdateTodoHandler(c *gin.Context) {
 
 // Handler for list todo
 func (h *todoHandler) ListTodoHandler(c *gin.Context) {
-	todos := h.todoService.ListTodo(c)
+	todos, err := h.todoService.ListTodo(c)
+	if err != nil {
+		log.Error().Err(err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, schemas.APIResponse{
+			Status:  http.StatusInternalServerError,
+			Message: err.Error(),
+			Data:    nil,
+		})
+	}
 
 	c.JSON(http.StatusOK, schemas.ListTodoResponse{
 		Status:  http.StatusOK,

@@ -7,8 +7,11 @@ import (
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 	"khiemle.dev/golang-api-template/api/routes"
-	"khiemle.dev/golang-api-template/internal/todo/handler"
-	"khiemle.dev/golang-api-template/internal/todo/service"
+	_authHandler "khiemle.dev/golang-api-template/internal/auth/handler"
+	_authService "khiemle.dev/golang-api-template/internal/auth/service"
+	_todoHandler "khiemle.dev/golang-api-template/internal/todo/handler"
+	_todoService "khiemle.dev/golang-api-template/internal/todo/service"
+	_userService "khiemle.dev/golang-api-template/internal/user/service"
 	util "khiemle.dev/golang-api-template/pkg/util"
 )
 
@@ -52,10 +55,13 @@ func (s *Server) setupRoutes() {
 	})
 
 	// Services
-	todoService := service.NewTodoService(s.db)
+	todoService := _todoService.NewTodoService(s.db)
+	userService := _userService.NewUserService(s.db)
+	authService := _authService.NewAuthService(s.db, userService)
 
 	// Handlers
-	todoHandler := handler.NewTodoHandler(todoService)
+	todoHandler := _todoHandler.NewTodoHandler(todoService)
+	authHandler := _authHandler.NewAuthHandler(authService)
 
 	// Routes for v1 endpoints
 	v1 := s.router.Group("/v1")
@@ -63,6 +69,10 @@ func (s *Server) setupRoutes() {
 		// Setup todoGroupRouter
 		todoGroup := v1.Group("/todos")
 		routes.SetupTodoRouter(todoGroup, todoHandler)
+
+		// Setup authGroupRouter
+		authGroup := v1.Group("/auth")
+		routes.SetupAuthRouter(authGroup, authHandler)
 	}
 
 	log.Info().Msg("Routes setup complete!")

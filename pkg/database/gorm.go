@@ -6,7 +6,8 @@ import (
 	"github.com/rs/zerolog/log"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"khiemle.dev/golang-api-template/internal/todo/model"
+	_todoModel "khiemle.dev/golang-api-template/internal/todo/model"
+	_userModel "khiemle.dev/golang-api-template/internal/user/model"
 	util "khiemle.dev/golang-api-template/pkg/util"
 )
 
@@ -19,7 +20,7 @@ func NewGormDB(cfg util.Config) (*gorm.DB, error) {
 		cfg.DBPassword,
 		cfg.DBName,
 		cfg.DBPort,
-	)
+	) // noqa
 	db, err := gorm.Open(postgres.Open(psqlconn), &gorm.Config{
 		SkipDefaultTransaction: true,
 	})
@@ -41,7 +42,17 @@ func NewGormDB(cfg util.Config) (*gorm.DB, error) {
 	return db, nil
 }
 
-
 func DBMigration(db *gorm.DB) error {
-	return db.AutoMigrate(&model.Todo{})
+	var err error
+	err = db.AutoMigrate(&_todoModel.Todo{})
+	if err != nil {
+		return err
+	}
+
+	err = db.AutoMigrate(&_userModel.User{})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
