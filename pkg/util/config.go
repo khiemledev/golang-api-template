@@ -25,6 +25,9 @@ type Config struct {
 	DBPassword string `mapstructure:"DB_PASSWORD"`
 	DBName     string `mapstructure:"DB_NAME"`
 	DBPort     int    `mapstructure:"DB_PORT"`
+
+	// JWT
+	PasetoSecretHex string `mapstructure:"JWT_SECRET_KEY"`
 }
 
 // Load config from env file and return Config
