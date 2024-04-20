@@ -13,9 +13,11 @@ type AuthLoginUserResponse struct {
 }
 
 type AuthLoginResponse struct {
-	Status  int                   `json:"status" binding:"required"`
-	Message string                `json:"message" binding:"required"`
-	User    AuthLoginUserResponse `json:"user"`
+	Status       int                   `json:"status" binding:"required"`
+	Message      string                `json:"message" binding:"required"`
+	User         AuthLoginUserResponse `json:"user"`
+	AccessToken  string                `json:"access_token" binding:"required"`
+	RefreshToken string                `json:"refresh_token" binding:"required"`
 }
 
 type AuthRegisterRequest struct {

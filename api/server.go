@@ -13,6 +13,7 @@ import (
 	_todoService "khiemle.dev/golang-api-template/internal/todo/service"
 	_userService "khiemle.dev/golang-api-template/internal/user/service"
 	util "khiemle.dev/golang-api-template/pkg/util"
+	"khiemle.dev/golang-api-template/pkg/util/token"
 )
 
 // Server represents the HTTP server.
@@ -54,10 +55,13 @@ func (s *Server) setupRoutes() {
 		ctx.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
 
+	// Token
+	tokenMaker := token.NewTokenMaker(s.cfg)
+
 	// Services
 	todoService := _todoService.NewTodoService(s.db)
 	userService := _userService.NewUserService(s.db)
-	authService := _authService.NewAuthService(s.db, userService)
+	authService := _authService.NewAuthService(s.db, userService, tokenMaker)
 
 	// Handlers
 	todoHandler := _todoHandler.NewTodoHandler(todoService)
@@ -72,7 +76,7 @@ func (s *Server) setupRoutes() {
 
 		// Setup authGroupRouter
 		authGroup := v1.Group("/auth")
-		routes.SetupAuthRouter(authGroup, authHandler)
+		routes.SetupAuthRouter(authGroup, authHandler, tokenMaker)
 	}
 
 	log.Info().Msg("Routes setup complete!")

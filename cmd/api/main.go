@@ -46,6 +46,7 @@ func main() {
 	}
 	log.Info().Msg("Initialized server")
 
+	// Start server
 	err = server.StartServer()
 	if err != nil {
 		log.Fatal().Err(err).Msg("Could not start server")

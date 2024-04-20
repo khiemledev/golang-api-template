@@ -9,12 +9,15 @@ import (
 	"gorm.io/gorm"
 	"khiemle.dev/golang-api-template/internal/auth/service"
 	"khiemle.dev/golang-api-template/internal/schemas"
+	"khiemle.dev/golang-api-template/pkg/middleware"
 	"khiemle.dev/golang-api-template/pkg/util"
+	"khiemle.dev/golang-api-template/pkg/util/token"
 )
 
 type AuthHandler interface {
 	LoginHandler(c *gin.Context)
 	RegisterHandler(c *gin.Context)
+	VerifyAccessToken(c *gin.Context)
 }
 
 type authHandler struct {
@@ -38,7 +41,7 @@ func (h *authHandler) LoginHandler(c *gin.Context) {
 		return
 	}
 
-	user, err := h.authService.LoginByUsernamePassword(c, req.Username, req.Password)
+	user, token, err := h.authService.LoginByUsernamePassword(c, req.Username, req.Password)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		c.AbortWithStatusJSON(http.StatusNotFound, schemas.APIResponse{
 			Status:  http.StatusNotFound,
@@ -75,6 +78,8 @@ func (h *authHandler) LoginHandler(c *gin.Context) {
 			Username: user.Username,
 			Email:    user.Email,
 		},
+		AccessToken:  token,
+		RefreshToken: token,
 	})
 }
 
@@ -123,5 +128,15 @@ func (h *authHandler) RegisterHandler(c *gin.Context) {
 		Status:        http.StatusOK,
 		Message:       http.StatusText(http.StatusOK),
 		CreatedUserId: user.ID,
+	})
+}
+
+func (h *authHandler) VerifyAccessToken(c *gin.Context) {
+	payload := c.MustGet(middleware.AuthorizationPayloadKey).(token.TokenPayload)
+
+	c.JSON(http.StatusOK, schemas.APIResponse{
+		Status:  http.StatusOK,
+		Message: http.StatusText(http.StatusOK),
+		Data:    payload,
 	})
 }
