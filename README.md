@@ -126,3 +126,11 @@ docker compose -f docker/docker-compose.yaml up -d
 ```
 
 You can modify environment in the file `docker/app.env`.
+
+
+## Todo
+
+- [ ] Add cache for login session and user
+- [ ] Add rate limit
+- [ ] Revoke token
+- [ ] Refresh token
