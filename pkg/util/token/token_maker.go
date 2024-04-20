@@ -32,7 +32,10 @@ func (m *tokenMaker) GenerateToken(payload *TokenPayload, expDuration time.Durat
 	token.SetExpiration(time.Now().Add(expDuration))
 
 	// Set payload
-	data, _ := json.Marshal(payload)
+	data, err := json.Marshal(payload)
+	if err != nil {
+		return "", nil
+	}
 	var json_data map[string]interface{}
 	json.Unmarshal(data, &json_data)
 	for k, v := range json_data {

@@ -10,6 +10,7 @@ import (
 	"gorm.io/gorm"
 	"khiemle.dev/golang-api-template/internal/auth/service"
 	"khiemle.dev/golang-api-template/internal/schemas"
+	"khiemle.dev/golang-api-template/internal/user/model"
 	"khiemle.dev/golang-api-template/pkg/middleware"
 	"khiemle.dev/golang-api-template/pkg/util"
 	"khiemle.dev/golang-api-template/pkg/util/token"
@@ -162,10 +163,19 @@ func (h *authHandler) RegisterHandler(c *gin.Context) {
 
 func (h *authHandler) VerifyAccessToken(c *gin.Context) {
 	payload := c.MustGet(middleware.AuthorizationPayloadKey).(token.TokenPayload)
+	currentUser := c.MustGet(middleware.AuthorizationCurrentUser).(*model.User)
 
 	c.JSON(http.StatusOK, schemas.APIResponse{
 		Status:  http.StatusOK,
 		Message: http.StatusText(http.StatusOK),
-		Data:    payload,
+		Data: gin.H{
+			"payload": payload,
+			"user": schemas.AuthLoginUserResponse{
+				ID:       currentUser.ID,
+				Name:     currentUser.Name,
+				Username: currentUser.Username,
+				Email:    currentUser.Email,
+			},
+		},
 	})
 }

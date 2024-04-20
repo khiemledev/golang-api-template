@@ -9,13 +9,13 @@ import (
 
 type UserService interface {
 	CreateUser(ctx *gin.Context, username string, email string, name string, password string) (*model.User, error)
-	GetUserById(ctx *gin.Context, id int) (*model.User, error)
+	GetUserById(ctx *gin.Context, id uint) (*model.User, error)
 	GetUserByUsername(ctx *gin.Context, username string) (*model.User, error)
 	GetUserByEmail(ctx *gin.Context, email string) (*model.User, error)
 	ListUser(ctx *gin.Context) ([]model.User, error)
-	UpdateUser(ctx *gin.Context, id int, name string, email string) (*model.User, error)
-	UpdatePassword(ctx *gin.Context, id int, password string, newPassword string, confirmPassword string) error
-	DeleteUser(ctx *gin.Context, id int) error
+	UpdateUser(ctx *gin.Context, id uint, name string, email string) (*model.User, error)
+	UpdatePassword(ctx *gin.Context, id uint, password string, newPassword string, confirmPassword string) error
+	DeleteUser(ctx *gin.Context, id uint) error
 }
 
 type userService struct {
@@ -51,7 +51,7 @@ func (s *userService) CreateUser(ctx *gin.Context, username string, email string
 	return user, nil
 }
 
-func (s *userService) GetUserById(ctx *gin.Context, id int) (*model.User, error) {
+func (s *userService) GetUserById(ctx *gin.Context, id uint) (*model.User, error) {
 	user := &model.User{}
 	tx := s.db.First(&user, "id = ?", id)
 	if tx.Error != nil {
@@ -87,7 +87,7 @@ func (s *userService) ListUser(ctx *gin.Context) ([]model.User, error) {
 	return users, nil
 }
 
-func (s *userService) UpdateUser(ctx *gin.Context, id int, name string, email string) (*model.User, error) {
+func (s *userService) UpdateUser(ctx *gin.Context, id uint, name string, email string) (*model.User, error) {
 	user := &model.User{}
 	err := s.db.Transaction(func(tx *gorm.DB) error {
 		err := tx.Find(user, "id = ?", id).Error
@@ -107,7 +107,7 @@ func (s *userService) UpdateUser(ctx *gin.Context, id int, name string, email st
 	return user, err
 }
 
-func (s *userService) UpdatePassword(ctx *gin.Context, id int, currentPassword string, newPassword string, confirmPassword string) error {
+func (s *userService) UpdatePassword(ctx *gin.Context, id uint, currentPassword string, newPassword string, confirmPassword string) error {
 	if newPassword != confirmPassword {
 		return nil
 	}
@@ -134,7 +134,7 @@ func (s *userService) UpdatePassword(ctx *gin.Context, id int, currentPassword s
 	return err
 }
 
-func (s *userService) DeleteUser(ctx *gin.Context, id int) error {
+func (s *userService) DeleteUser(ctx *gin.Context, id uint) error {
 	return s.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Delete(&model.User{}, "id = ?", id).Error; err != nil {
 			return err

@@ -3,7 +3,9 @@ package routes
 import (
 	"github.com/gin-gonic/gin"
 	_authHandler "khiemle.dev/golang-api-template/internal/auth/handler"
+	"khiemle.dev/golang-api-template/internal/auth/service"
 	_todoHandler "khiemle.dev/golang-api-template/internal/todo/handler"
+	_userService "khiemle.dev/golang-api-template/internal/user/service"
 	"khiemle.dev/golang-api-template/pkg/middleware"
 	"khiemle.dev/golang-api-template/pkg/util/token"
 )
@@ -16,10 +18,16 @@ func SetupTodoRouter(todoGroup *gin.RouterGroup, todoHandler _todoHandler.TodoHa
 	todoGroup.DELETE("/:id", todoHandler.DeleteTodoHandler)
 }
 
-func SetupAuthRouter(authGroup *gin.RouterGroup, authHandler _authHandler.AuthHandler, tokenMaker token.TokenMaker) {
+func SetupAuthRouter(
+	authGroup *gin.RouterGroup,
+	authHandler _authHandler.AuthHandler,
+	tokenMaker token.TokenMaker,
+	loginSessionService service.LoginSessionService,
+	userService _userService.UserService,
+) {
 	authGroup.POST("/login", authHandler.LoginHandler)
 	authGroup.POST("/register", authHandler.RegisterHandler)
 
 	// Apply middleware to verify access token
-	authGroup.GET("/verify_access_token", middleware.AuthorizationMiddleware(tokenMaker), authHandler.VerifyAccessToken)
+	authGroup.GET("/verify_access_token", middleware.AuthorizationMiddleware(tokenMaker, loginSessionService, userService), authHandler.VerifyAccessToken)
 }

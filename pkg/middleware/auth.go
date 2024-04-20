@@ -7,17 +7,22 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog/log"
+	"gorm.io/gorm"
+	"khiemle.dev/golang-api-template/internal/auth/service"
 	"khiemle.dev/golang-api-template/internal/schemas"
+	_userService "khiemle.dev/golang-api-template/internal/user/service"
 	"khiemle.dev/golang-api-template/pkg/util/token"
 )
 
 const (
-	AuthorizationHeaderKey  = "authorization"
-	AuthorizationTypeBearer = "bearer"
-	AuthorizationPayloadKey = "authorization_payload"
+	AuthorizationHeaderKey   = "authorization"
+	AuthorizationTypeBearer  = "bearer"
+	AuthorizationPayloadKey  = "authorization_payload"
+	AuthorizationCurrentUser = "current_user"
 )
 
-func AuthorizationMiddleware(tokenMaker token.TokenMaker) gin.HandlerFunc {
+func AuthorizationMiddleware(tokenMaker token.TokenMaker, loginSessionService service.LoginSessionService, userService _userService.UserService) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		authorizationHeader := ctx.GetHeader(AuthorizationHeaderKey)
 		if len(authorizationHeader) == 0 {
@@ -65,7 +70,48 @@ func AuthorizationMiddleware(tokenMaker token.TokenMaker) gin.HandlerFunc {
 			return
 		}
 
+		// Check login session
+		loginSession, err := loginSessionService.FindByTokenID(ctx, payload.ID)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, schemas.APIResponse{
+				Status:  http.StatusUnauthorized,
+				Message: "login session not found",
+				Data:    nil,
+			})
+			return
+		}
+		if err != nil {
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, schemas.APIResponse{
+				Status:  http.StatusUnauthorized,
+				Message: err.Error(),
+				Data:    nil,
+			})
+			return
+		}
+		log.Info().Msgf("Login session found: %d", loginSession.ID)
+
+		// Get current logged in user
+		user, err := userService.GetUserById(ctx, loginSession.UserId)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, schemas.APIResponse{
+				Status:  http.StatusUnauthorized,
+				Message: "user not found",
+				Data:    nil,
+			})
+			return
+		}
+		if err != nil {
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, schemas.APIResponse{
+				Status:  http.StatusUnauthorized,
+				Message: err.Error(),
+				Data:    nil,
+			})
+			return
+		}
+		log.Info().Msgf("User found: %d", user.ID)
+
 		ctx.Set(AuthorizationPayloadKey, *payload)
+		ctx.Set(AuthorizationCurrentUser, user)
 		ctx.Next()
 	}
 }
