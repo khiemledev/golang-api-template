@@ -25,9 +25,10 @@ func SetupAuthRouter(
 	loginSessionService service.LoginSessionService,
 	userService _userService.UserService,
 ) {
+	authMiddleware := middleware.AuthorizationMiddleware(tokenMaker, loginSessionService, userService)
+
 	authGroup.POST("/login", authHandler.LoginHandler)
 	authGroup.POST("/register", authHandler.RegisterHandler)
-
-	// Apply middleware to verify access token
-	authGroup.GET("/verify_access_token", middleware.AuthorizationMiddleware(tokenMaker, loginSessionService, userService), authHandler.VerifyAccessToken)
+	authGroup.DELETE("/logout", authMiddleware, authHandler.LogoutHandler)
+	authGroup.GET("/verify_access_token", authMiddleware, authHandler.VerifyAccessToken)
 }

@@ -14,6 +14,7 @@ type LoginSessionService interface {
 	FindById(c *gin.Context, id uint) (*model.LoginSession, error)
 	FindByTokenID(c *gin.Context, tokenID uuid.UUID) (*model.LoginSession, error)
 	UpdateAccessToken(c *gin.Context, id uint, accessToken string) (*model.LoginSession, error)
+	DeleteByTokenID(c *gin.Context, tokenID uuid.UUID) error
 }
 
 type loginSessionService struct {
@@ -57,4 +58,10 @@ func (s *loginSessionService) UpdateAccessToken(c *gin.Context, id uint, accessT
 	loginSession := model.LoginSession{}
 	tx := s.db.Model(&loginSession).Where("id = ?", id).Update("access_token", accessToken)
 	return &loginSession, tx.Error
+}
+
+func (s *loginSessionService) DeleteByTokenID(c *gin.Context, tokenID uuid.UUID) error {
+	loginSession := model.LoginSession{}
+	tx := s.db.Delete(&loginSession, "token_id = ?", tokenID)
+	return tx.Error
 }

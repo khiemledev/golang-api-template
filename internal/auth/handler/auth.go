@@ -20,6 +20,7 @@ type AuthHandler interface {
 	LoginHandler(c *gin.Context)
 	RegisterHandler(c *gin.Context)
 	VerifyAccessToken(c *gin.Context)
+	LogoutHandler(c *gin.Context)
 }
 
 type authHandler struct {
@@ -177,5 +178,29 @@ func (h *authHandler) VerifyAccessToken(c *gin.Context) {
 				Email:    currentUser.Email,
 			},
 		},
+	})
+}
+
+func (h *authHandler) LogoutHandler(c *gin.Context) {
+	payload := c.MustGet(middleware.AuthorizationPayloadKey).(token.TokenPayload)
+
+	// Delete login session
+	err := h.loginService.DeleteByTokenID(c, payload.ID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, schemas.APIResponse{
+			Status:  http.StatusInternalServerError,
+			Message: err.Error(),
+			Data:    nil,
+		})
+		return
+	}
+
+	c.SetCookie("access_token", "", -1, "/", h.cfg.CookieDomain, false, true)
+	c.SetCookie("refresh_token", "", -1, "/", h.cfg.CookieDomain, false, true)
+
+	c.JSON(http.StatusOK, schemas.APIResponse{
+		Status:  http.StatusOK,
+		Message: http.StatusText(http.StatusOK),
+		Data:    nil,
 	})
 }
