@@ -6,6 +6,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	_authModel "khiemle.dev/golang-api-template/internal/auth/model"
 	_todoModel "khiemle.dev/golang-api-template/internal/todo/model"
 	_userModel "khiemle.dev/golang-api-template/internal/user/model"
 	util "khiemle.dev/golang-api-template/pkg/util"
@@ -50,6 +51,11 @@ func DBMigration(db *gorm.DB) error {
 	}
 
 	err = db.AutoMigrate(&_userModel.User{})
+	if err != nil {
+		return err
+	}
+
+	err = db.AutoMigrate(&_authModel.LoginSession{})
 	if err != nil {
 		return err
 	}

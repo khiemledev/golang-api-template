@@ -61,11 +61,12 @@ func (s *Server) setupRoutes() {
 	// Services
 	todoService := _todoService.NewTodoService(s.db)
 	userService := _userService.NewUserService(s.db)
-	authService := _authService.NewAuthService(s.db, userService, tokenMaker)
+	authService := _authService.NewAuthService(s.db, s.cfg, userService, tokenMaker)
+	loginService := _authService.NewLoginSessionService(s.db)
 
 	// Handlers
 	todoHandler := _todoHandler.NewTodoHandler(todoService)
-	authHandler := _authHandler.NewAuthHandler(authService)
+	authHandler := _authHandler.NewAuthHandler(s.cfg, authService, loginService)
 
 	// Routes for v1 endpoints
 	v1 := s.router.Group("/v1")

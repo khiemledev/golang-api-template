@@ -27,7 +27,12 @@ type Config struct {
 	DBPort     int    `mapstructure:"DB_PORT"`
 
 	// JWT
-	PasetoSecretHex string `mapstructure:"JWT_SECRET_KEY"`
+	PasetoSecretHex           string `mapstructure:"JWT_SECRET_KEY"`
+	AccessTokenExpiryInHours  int    `mapstructure:"ACCESS_TOKEN_EXPIRY_IN_HOURS"`
+	RefreshTokenExpiryInHours int    `mapstructure:"REFRESH_TOKEN_EXPIRY_IN_HOURS"`
+
+	// Cookies
+	CookieDomain string `mapstructure:"COOKIE_DOMAIN"`
 }
 
 // Load config from env file and return Config
@@ -49,6 +54,13 @@ func LoadConfig(path string) (config Config, err error) {
 	viper.SetDefault("LOG_MAX_BACKUPS", 5)
 	viper.SetDefault("LOG_MAX_AGE", 28)
 	viper.SetDefault("LOG_COMPRESS", true)
+
+	// JWT configs
+	viper.SetDefault("ACCESS_TOKEN_EXPIRY_IN_HOURS", 24)     // 1 day
+	viper.SetDefault("REFRESH_TOKEN_EXPIRY_IN_HOURS", 24*30) // 30 days
+
+	// Cookies
+	viper.SetDefault("COOKIE_DOMAIN", "localhost")
 
 	// Read config
 	err = viper.ReadInConfig()

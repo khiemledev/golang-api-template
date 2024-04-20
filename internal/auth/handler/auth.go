@@ -3,6 +3,7 @@ package handler
 import (
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
@@ -21,12 +22,16 @@ type AuthHandler interface {
 }
 
 type authHandler struct {
-	authService service.AuthService
+	cfg          *util.Config
+	authService  service.AuthService
+	loginService service.LoginSessionService
 }
 
-func NewAuthHandler(authService service.AuthService) AuthHandler {
+func NewAuthHandler(cfg *util.Config, authService service.AuthService, loginService service.LoginSessionService) AuthHandler {
 	return &authHandler{
-		authService: authService,
+		cfg:          cfg,
+		authService:  authService,
+		loginService: loginService,
 	}
 }
 
@@ -41,7 +46,7 @@ func (h *authHandler) LoginHandler(c *gin.Context) {
 		return
 	}
 
-	user, token, err := h.authService.LoginByUsernamePassword(c, req.Username, req.Password)
+	user, data, err := h.authService.LoginByUsernamePassword(c, req.Username, req.Password)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		c.AbortWithStatusJSON(http.StatusNotFound, schemas.APIResponse{
 			Status:  http.StatusNotFound,
@@ -69,6 +74,29 @@ func (h *authHandler) LoginHandler(c *gin.Context) {
 		return
 	}
 
+	loginSession, err := h.loginService.Create(
+		c,
+		data.Payload.ID,
+		user.ID,
+		c.Request.UserAgent(),
+		c.ClientIP(),
+		data.AccessToken,
+		data.RefreshToken,
+		time.Now().Add(data.AccessTokenExpiresIn),
+		time.Now().Add(data.RefreshTokenExpiresIn),
+	)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, schemas.APIResponse{
+			Status:  http.StatusInternalServerError,
+			Message: err.Error(),
+			Data:    nil,
+		})
+		return
+	}
+
+	c.SetCookie("access_token", data.AccessToken, int(data.AccessTokenExpiresIn.Seconds()), "/", h.cfg.CookieDomain, false, true)
+	c.SetCookie("refresh_token", data.RefreshToken, int(data.RefreshTokenExpiresIn.Seconds()), "/", h.cfg.CookieDomain, false, true)
+
 	c.JSON(http.StatusOK, schemas.AuthLoginResponse{
 		Status:  http.StatusOK,
 		Message: http.StatusText(http.StatusOK),
@@ -78,8 +106,9 @@ func (h *authHandler) LoginHandler(c *gin.Context) {
 			Username: user.Username,
 			Email:    user.Email,
 		},
-		AccessToken:  token,
-		RefreshToken: token,
+		LoginSessionID: loginSession.ID,
+		AccessToken:    data.AccessToken,
+		RefreshToken:   data.RefreshToken,
 	})
 }
 

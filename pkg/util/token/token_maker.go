@@ -10,7 +10,7 @@ import (
 )
 
 type TokenMaker interface {
-	GenerateToken(payload *TokenPayload) string
+	GenerateToken(payload *TokenPayload, expDuration time.Duration) (string, error)
 	VerifyToken(signed string) (*TokenPayload, error)
 }
 
@@ -24,27 +24,29 @@ func NewTokenMaker(cfg *util.Config) TokenMaker {
 	}
 }
 
-func (m *tokenMaker) GenerateToken(payload *TokenPayload) string {
+func (m *tokenMaker) GenerateToken(payload *TokenPayload, expDuration time.Duration) (string, error) {
 	token := paseto.NewToken()
 
 	token.SetIssuedAt(time.Now())
 	token.SetNotBefore(time.Now())
-	token.SetExpiration(time.Now().Add(30 * time.Second))
+	token.SetExpiration(time.Now().Add(expDuration))
 
 	// Set payload
 	data, _ := json.Marshal(payload)
 	var json_data map[string]interface{}
 	json.Unmarshal(data, &json_data)
 	for k, v := range json_data {
-		token.Set(k, v)
-		log.Info().Msg(k + " : " + v.(string))
+		err := token.Set(k, v)
+		if err != nil {
+			return "", err
+		}
 	}
 
 	secretKeyHex := m.cfg.PasetoSecretHex
 	key, _ := paseto.V4SymmetricKeyFromHex(secretKeyHex)
 
 	signed := token.V4Encrypt(key, nil)
-	return signed
+	return signed, nil
 }
 
 func (m *tokenMaker) VerifyToken(signed string) (*TokenPayload, error) {

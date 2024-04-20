@@ -13,11 +13,12 @@ type AuthLoginUserResponse struct {
 }
 
 type AuthLoginResponse struct {
-	Status       int                   `json:"status" binding:"required"`
-	Message      string                `json:"message" binding:"required"`
-	User         AuthLoginUserResponse `json:"user"`
-	AccessToken  string                `json:"access_token" binding:"required"`
-	RefreshToken string                `json:"refresh_token" binding:"required"`
+	Status         int                   `json:"status" binding:"required"`
+	Message        string                `json:"message" binding:"required"`
+	User           AuthLoginUserResponse `json:"user"`
+	LoginSessionID uint                  `json:"login_session_id" binding:"required"`
+	AccessToken    string                `json:"access_token" binding:"required"`
+	RefreshToken   string                `json:"refresh_token" binding:"required"`
 }
 
 type AuthRegisterRequest struct {
