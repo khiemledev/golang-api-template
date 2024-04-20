@@ -69,7 +69,11 @@ func (m *tokenMaker) VerifyToken(signed string) (*TokenPayload, error) {
 	}
 
 	payload := &TokenPayload{}
-	json.Unmarshal(parsedToken.ClaimsJSON(), payload)
+	err = json.Unmarshal(parsedToken.ClaimsJSON(), payload)
+	if err != nil {
+		log.Error().Msg(err.Error())
+		return nil, err
+	}
 
 	return payload, nil
 }
