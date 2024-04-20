@@ -37,7 +37,11 @@ func (m *tokenMaker) GenerateToken(payload *TokenPayload, expDuration time.Durat
 		return "", nil
 	}
 	var json_data map[string]interface{}
-	json.Unmarshal(data, &json_data)
+	err = json.Unmarshal(data, &json_data)
+	if err != nil {
+		return "", err
+	}
+
 	for k, v := range json_data {
 		err := token.Set(k, v)
 		if err != nil {
