@@ -13,7 +13,7 @@ type LoginSessionService interface {
 	Create(c *gin.Context, tokenID uuid.UUID, userId uint, userAgent string, clientIP string, accessToken string, refreshToken string, accessTokenExpiresIn time.Time, refreshTokenExpiresIn time.Time) (*model.LoginSession, error)
 	FindById(c *gin.Context, id uint) (*model.LoginSession, error)
 	FindByTokenID(c *gin.Context, tokenID uuid.UUID) (*model.LoginSession, error)
-	UpdateAccessToken(c *gin.Context, id uint, accessToken string) (*model.LoginSession, error)
+	UpdateAccessToken(c *gin.Context, id uint, accessToken string, accessTokenExpiresIn time.Time) (*model.LoginSession, error)
 	DeleteByTokenID(c *gin.Context, tokenID uuid.UUID) error
 }
 
@@ -54,9 +54,12 @@ func (s *loginSessionService) Create(c *gin.Context, tokenID uuid.UUID, userId u
 	return &loginSession, tx.Error
 }
 
-func (s *loginSessionService) UpdateAccessToken(c *gin.Context, id uint, accessToken string) (*model.LoginSession, error) {
+func (s *loginSessionService) UpdateAccessToken(c *gin.Context, id uint, accessToken string, accessTokenExpiresIn time.Time) (*model.LoginSession, error) {
 	loginSession := model.LoginSession{}
-	tx := s.db.Model(&loginSession).Where("id = ?", id).Update("access_token", accessToken)
+	tx := s.db.Model(&loginSession).
+		Where("id = ?", id).
+		Update("access_token", accessToken).
+		Update("access_token_expires_in", accessTokenExpiresIn)
 	return &loginSession, tx.Error
 }
 

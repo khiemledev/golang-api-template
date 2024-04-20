@@ -5,13 +5,13 @@ import (
 )
 
 type TokenPayload struct {
-	ID     uuid.UUID `json:"id"`
-	UserId string    `json:"user_id"`
+	TokenID uuid.UUID `json:"id"`
+	UserId  uint      `json:"user_id"`
 }
 
-func NewPayload(userId string) *TokenPayload {
+func NewPayload(userId uint) *TokenPayload {
 	return &TokenPayload{
-		ID:     uuid.New(),
-		UserId: userId,
+		TokenID: uuid.New(),
+		UserId:  userId,
 	}
 }

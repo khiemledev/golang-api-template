@@ -17,12 +17,13 @@ import (
 
 const (
 	AuthorizationHeaderKey   = "authorization"
+	AuthorizationHeaderToken = "authorization_token"
 	AuthorizationTypeBearer  = "bearer"
 	AuthorizationPayloadKey  = "authorization_payload"
 	AuthorizationCurrentUser = "current_user"
 )
 
-func AuthorizationMiddleware(tokenMaker token.TokenMaker, loginSessionService service.LoginSessionService, userService _userService.UserService) gin.HandlerFunc {
+func GetBearerTokenMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		authorizationHeader := ctx.GetHeader(AuthorizationHeaderKey)
 		if len(authorizationHeader) == 0 {
@@ -58,6 +59,13 @@ func AuthorizationMiddleware(tokenMaker token.TokenMaker, loginSessionService se
 		}
 
 		token := fields[1]
+		ctx.Set(AuthorizationHeaderToken, token)
+	}
+}
+
+func VerifyTokenMiddleware(tokenMaker token.TokenMaker, loginSessionService service.LoginSessionService, userService _userService.UserService) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		token := ctx.MustGet(AuthorizationHeaderToken).(string)
 
 		// Verify token
 		payload, err := tokenMaker.VerifyToken(token)
@@ -71,7 +79,7 @@ func AuthorizationMiddleware(tokenMaker token.TokenMaker, loginSessionService se
 		}
 
 		// Check login session
-		loginSession, err := loginSessionService.FindByTokenID(ctx, payload.ID)
+		loginSession, err := loginSessionService.FindByTokenID(ctx, payload.TokenID)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, schemas.APIResponse{
 				Status:  http.StatusUnauthorized,
@@ -110,6 +118,7 @@ func AuthorizationMiddleware(tokenMaker token.TokenMaker, loginSessionService se
 		}
 		log.Info().Msgf("User found: %d", user.ID)
 
+		ctx.Set(AuthorizationHeaderToken, token)
 		ctx.Set(AuthorizationPayloadKey, *payload)
 		ctx.Set(AuthorizationCurrentUser, user)
 		ctx.Next()

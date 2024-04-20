@@ -61,8 +61,8 @@ func (s *Server) setupRoutes() {
 	// Services
 	todoService := _todoService.NewTodoService(s.db)
 	userService := _userService.NewUserService(s.db)
-	authService := _authService.NewAuthService(s.db, s.cfg, userService, tokenMaker)
 	loginSessionService := _authService.NewLoginSessionService(s.db)
+	authService := _authService.NewAuthService(s.db, s.cfg, userService, loginSessionService, tokenMaker)
 
 	// Handlers
 	todoHandler := _todoHandler.NewTodoHandler(todoService)

@@ -2,7 +2,6 @@ package service
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -22,24 +21,39 @@ type LoginByUserNamePasswordData struct {
 	RefreshTokenExpiresIn time.Duration
 }
 
+type RefreshTokenData struct {
+	LoginSessionID       uint
+	Payload              *token.TokenPayload
+	AccessToken          string
+	AccessTokenExpiresIn time.Duration
+}
+
 type AuthService interface {
 	LoginByUsernamePassword(ctx *gin.Context, username string, password string) (*model.User, *LoginByUserNamePasswordData, error)
 	RegisterUser(ctx *gin.Context, username string, email string, name string, password string, confirmPassword string) (*model.User, error)
+	RefreshToken(ctx *gin.Context, refreshToken string) (*model.User, *RefreshTokenData, error)
 }
 
 type authService struct {
-	db          *gorm.DB
-	cfg         *util.Config
-	userService _userService.UserService
-	tokenMaker  token.TokenMaker
+	db                  *gorm.DB
+	cfg                 *util.Config
+	userService         _userService.UserService
+	loginSessionService LoginSessionService
+	tokenMaker          token.TokenMaker
 }
 
-func NewAuthService(db *gorm.DB, cfg *util.Config, userService _userService.UserService, tokenMaker token.TokenMaker) AuthService {
+func NewAuthService(
+	db *gorm.DB,
+	cfg *util.Config,
+	userService _userService.UserService,
+	loginSessionService LoginSessionService,
+	tokenMaker token.TokenMaker) AuthService {
 	return &authService{
-		db:          db,
-		cfg:         cfg,
-		userService: userService,
-		tokenMaker:  tokenMaker,
+		db:                  db,
+		cfg:                 cfg,
+		userService:         userService,
+		loginSessionService: loginSessionService,
+		tokenMaker:          tokenMaker,
 	}
 }
 
@@ -54,7 +68,7 @@ func (s *authService) LoginByUsernamePassword(ctx *gin.Context, username string,
 	}
 
 	// Generate token
-	payload := token.NewPayload(fmt.Sprint(user.ID))
+	payload := token.NewPayload(user.ID)
 	accessToken, err := s.tokenMaker.GenerateToken(payload, time.Duration(s.cfg.AccessTokenExpiryInHours)*time.Hour)
 	if err != nil {
 		return nil, nil, err
@@ -86,4 +100,42 @@ func (s *authService) RegisterUser(ctx *gin.Context, username string, email stri
 	}
 
 	return user, nil
+}
+
+func (s *authService) RefreshToken(ctx *gin.Context, refreshToken string) (*model.User, *RefreshTokenData, error) {
+	payload, err := s.tokenMaker.VerifyToken(refreshToken)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	loginSession, err := s.loginSessionService.FindByTokenID(ctx, payload.TokenID)
+	if err != nil {
+		return nil, nil, err
+	}
+	if refreshToken != loginSession.RefreshToken {
+		return nil, nil, errors.New("refreshToken does not match")
+	}
+
+	user, err := s.userService.GetUserById(ctx, loginSession.UserId)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	exp := time.Duration(s.cfg.AccessTokenExpiryInHours) * time.Hour
+	accessToken, err := s.tokenMaker.GenerateToken(payload, exp)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	loginSession, err = s.loginSessionService.UpdateAccessToken(ctx, loginSession.ID, accessToken, time.Now().Add(exp))
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return user, &RefreshTokenData{
+		LoginSessionID:       loginSession.ID,
+		Payload:              payload,
+		AccessToken:          accessToken,
+		AccessTokenExpiresIn: exp,
+	}, nil
 }

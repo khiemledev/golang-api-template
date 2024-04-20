@@ -64,7 +64,7 @@ func (m *tokenMaker) VerifyToken(signed string) (*TokenPayload, error) {
 
 	parsedToken, err := parser.ParseV4Local(key, signed, nil)
 	if err != nil {
-		log.Error().Msg(err.Error())
+		log.Error().Msgf("Error parsing token: %v - %T\n", err, err)
 		return nil, err
 	}
 

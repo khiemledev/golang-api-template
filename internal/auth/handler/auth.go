@@ -9,11 +9,12 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 	"khiemle.dev/golang-api-template/internal/auth/service"
+	"khiemle.dev/golang-api-template/internal/constant"
 	"khiemle.dev/golang-api-template/internal/schemas"
 	"khiemle.dev/golang-api-template/internal/user/model"
 	"khiemle.dev/golang-api-template/pkg/middleware"
 	"khiemle.dev/golang-api-template/pkg/util"
-	"khiemle.dev/golang-api-template/pkg/util/token"
+	_token "khiemle.dev/golang-api-template/pkg/util/token"
 )
 
 type AuthHandler interface {
@@ -21,19 +22,20 @@ type AuthHandler interface {
 	RegisterHandler(c *gin.Context)
 	VerifyAccessToken(c *gin.Context)
 	LogoutHandler(c *gin.Context)
+	RefreshTokenHandler(c *gin.Context)
 }
 
 type authHandler struct {
-	cfg          *util.Config
-	authService  service.AuthService
-	loginService service.LoginSessionService
+	cfg                 *util.Config
+	authService         service.AuthService
+	loginSessionService service.LoginSessionService
 }
 
-func NewAuthHandler(cfg *util.Config, authService service.AuthService, loginService service.LoginSessionService) AuthHandler {
+func NewAuthHandler(cfg *util.Config, authService service.AuthService, loginSessionService service.LoginSessionService) AuthHandler {
 	return &authHandler{
-		cfg:          cfg,
-		authService:  authService,
-		loginService: loginService,
+		cfg:                 cfg,
+		authService:         authService,
+		loginSessionService: loginSessionService,
 	}
 }
 
@@ -76,9 +78,9 @@ func (h *authHandler) LoginHandler(c *gin.Context) {
 		return
 	}
 
-	loginSession, err := h.loginService.Create(
+	loginSession, err := h.loginSessionService.Create(
 		c,
-		data.Payload.ID,
+		data.Payload.TokenID,
 		user.ID,
 		c.Request.UserAgent(),
 		c.ClientIP(),
@@ -108,9 +110,11 @@ func (h *authHandler) LoginHandler(c *gin.Context) {
 			Username: user.Username,
 			Email:    user.Email,
 		},
-		LoginSessionID: loginSession.ID,
-		AccessToken:    data.AccessToken,
-		RefreshToken:   data.RefreshToken,
+		LoginSessionID:        loginSession.ID,
+		AccessToken:           data.AccessToken,
+		RefreshToken:          data.RefreshToken,
+		AccessTokenExpiresIn:  data.AccessTokenExpiresIn,
+		RefreshTokenExpiresIn: data.RefreshTokenExpiresIn,
 	})
 }
 
@@ -163,7 +167,7 @@ func (h *authHandler) RegisterHandler(c *gin.Context) {
 }
 
 func (h *authHandler) VerifyAccessToken(c *gin.Context) {
-	payload := c.MustGet(middleware.AuthorizationPayloadKey).(token.TokenPayload)
+	payload := c.MustGet(middleware.AuthorizationPayloadKey).(_token.TokenPayload)
 	currentUser := c.MustGet(middleware.AuthorizationCurrentUser).(*model.User)
 
 	c.JSON(http.StatusOK, schemas.APIResponse{
@@ -182,10 +186,10 @@ func (h *authHandler) VerifyAccessToken(c *gin.Context) {
 }
 
 func (h *authHandler) LogoutHandler(c *gin.Context) {
-	payload := c.MustGet(middleware.AuthorizationPayloadKey).(token.TokenPayload)
+	payload := c.MustGet(middleware.AuthorizationPayloadKey).(_token.TokenPayload)
 
 	// Delete login session
-	err := h.loginService.DeleteByTokenID(c, payload.ID)
+	err := h.loginSessionService.DeleteByTokenID(c, payload.TokenID)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, schemas.APIResponse{
 			Status:  http.StatusInternalServerError,
@@ -195,12 +199,42 @@ func (h *authHandler) LogoutHandler(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("access_token", "", -1, "/", h.cfg.CookieDomain, false, true)
-	c.SetCookie("refresh_token", "", -1, "/", h.cfg.CookieDomain, false, true)
+	c.SetCookie(constant.AccessToken, "", -1, "/", h.cfg.CookieDomain, false, true)
+	c.SetCookie(constant.RefreshToken, "", -1, "/", h.cfg.CookieDomain, false, true)
 
 	c.JSON(http.StatusOK, schemas.APIResponse{
 		Status:  http.StatusOK,
 		Message: http.StatusText(http.StatusOK),
 		Data:    nil,
+	})
+}
+
+func (h *authHandler) RefreshTokenHandler(ctx *gin.Context) {
+	refreshToken := ctx.MustGet(middleware.AuthorizationHeaderToken).(string)
+
+	user, data, err := h.authService.RefreshToken(ctx, refreshToken)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, schemas.APIResponse{
+			Status:  http.StatusInternalServerError,
+			Message: err.Error(),
+			Data:    nil,
+		})
+		return
+	}
+
+	ctx.SetCookie(constant.AccessToken, data.AccessToken, int(data.AccessTokenExpiresIn.Seconds()), "/", h.cfg.CookieDomain, false, true)
+
+	ctx.JSON(http.StatusOK, schemas.AuthRefreshResponse{
+		Status:  http.StatusOK,
+		Message: http.StatusText(http.StatusOK),
+		User: schemas.AuthLoginUserResponse{
+			ID:       user.ID,
+			Name:     user.Name,
+			Username: user.Username,
+			Email:    user.Email,
+		},
+		LoginSessionID:       data.LoginSessionID,
+		AccessToken:          data.AccessToken,
+		AccessTokenExpiresIn: data.AccessTokenExpiresIn,
 	})
 }
