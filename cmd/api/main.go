@@ -22,10 +22,10 @@ import (
 //	@host		localhost:8085
 //	@BasePath	/v1
 
-//	@securityDefinitions.apiKey	BearerAuth
-//	@in							header
-//	@name						Authorization
-//	@description				Enter JWT Bearer token
+// @securityDefinitions.apiKey	BearerAuth
+// @in							header
+// @name						Authorization
+// @description				Enter JWT ***
 func main() {
 	cfg, err := util.LoadConfig(".")
 	if err != nil {

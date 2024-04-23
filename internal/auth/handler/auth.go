@@ -40,17 +40,18 @@ func NewAuthHandler(cfg *util.Config, authService service.AuthService, loginSess
 }
 
 // LoginHandler godoc
-//	@Summary		Login with username and password
-//	@Description	Login with username and password
-//	@Tags			auth
-//	@Accept			json
-//	@Produce		json
-//	@Param			request	body		schemas.AuthLoginRequest	true	"Enter username and password"
-//	@Success		200		{object}	schemas.AuthLoginResponse
-//	@Failure		400		{object}	schemas.APIResponse
-//	@Failure		401		{object}	schemas.APIResponse
-//	@Failure		500		{object}	schemas.APIResponse
-//	@Router			/auth/login [post]
+
+// @Summary		Login with username and password
+// @Description	Login with username and password
+// @Tags			auth
+// @Accept			json
+// @Produce		json
+// @Param			request	body		schemas.AuthLoginRequest	true	"Enter username and password"
+// @Success		200		{object}	schemas.AuthLoginResponse
+// @Failure		400		{object}	schemas.APIResponse
+// @Failure		401		{object}	schemas.APIResponse
+// @Failure		500		{object}	schemas.APIResponse
+// @Router			/auth/login [post]
 func (h *authHandler) LoginHandler(c *gin.Context) {
 	req := schemas.AuthLoginRequest{}
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -131,16 +132,17 @@ func (h *authHandler) LoginHandler(c *gin.Context) {
 }
 
 // RegisterHandler godoc
-//	@Summary		Register new user
-//	@Description	Register new user
-//	@Tags			auth
-//	@Accept			json
-//	@Produce		json
-//	@Param			request	body		schemas.AuthRegisterRequest	true	"Enter user information"
-//	@Success		200		{object}	schemas.AuthRegisterResponse
-//	@Failure		400		{object}	schemas.APIResponse
-//	@Failure		500		{object}	schemas.APIResponse
-//	@Router			/auth/register [post]
+
+// @Summary		Register new user
+// @Description	Register new user
+// @Tags			auth
+// @Accept			json
+// @Produce		json
+// @Param			request	body		schemas.AuthRegisterRequest	true	"Enter user information"
+// @Success		200		{object}	schemas.AuthRegisterResponse
+// @Failure		400		{object}	schemas.APIResponse
+// @Failure		500		{object}	schemas.APIResponse
+// @Router			/auth/register [post]
 func (h *authHandler) RegisterHandler(c *gin.Context) {
 	req := schemas.AuthRegisterRequest{}
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -190,16 +192,17 @@ func (h *authHandler) RegisterHandler(c *gin.Context) {
 }
 
 // RegisterHandler godoc
-//	@Summary		Verify access token
-//	@Description	Verify access token
-//	@Tags			auth
-//	@Accept			json
-//	@Produce		json
-//	@Success		200	{object}	schemas.AuthLoginUserResponse
-//	@Failure		401	{object}	schemas.APIResponse
-//	@Failure		500	{object}	schemas.APIResponse
-//	@Router			/auth/verify_access_token [get]
-//	@Security		BearerAuth
+
+// @Summary		Verify access token
+// @Description	Verify access token
+// @Tags			auth
+// @Accept			json
+// @Produce		json
+// @Success		200	{object}	schemas.AuthLoginUserResponse
+// @Failure		401	{object}	schemas.APIResponse
+// @Failure		500	{object}	schemas.APIResponse
+// @Router			/auth/verify_access_token [get]
+// @Security		BearerAuth
 func (h *authHandler) VerifyAccessToken(c *gin.Context) {
 	payload := c.MustGet(middleware.AuthorizationPayloadKey).(_token.TokenPayload)
 	currentUser := c.MustGet(middleware.AuthorizationCurrentUser).(*model.User)
@@ -220,16 +223,17 @@ func (h *authHandler) VerifyAccessToken(c *gin.Context) {
 }
 
 // LogoutHandler godoc
-//	@Summary		Logout
-//	@Description	Logout
-//	@Tags			auth
-//	@Accept			json
-//	@Produce		json
-//	@Success		200	{object}	schemas.APIResponse
-//	@Failure		401	{object}	schemas.APIResponse
-//	@Failure		500	{object}	schemas.APIResponse
-//	@Router			/auth/logout [get]
-//	@Security		BearerAuth
+
+// @Summary		Logout
+// @Description	Logout
+// @Tags			auth
+// @Accept			json
+// @Produce		json
+// @Success		200	{object}	schemas.APIResponse
+// @Failure		401	{object}	schemas.APIResponse
+// @Failure		500	{object}	schemas.APIResponse
+// @Router			/auth/logout [get]
+// @Security		BearerAuth
 func (h *authHandler) LogoutHandler(c *gin.Context) {
 	payload := c.MustGet(middleware.AuthorizationPayloadKey).(_token.TokenPayload)
 
@@ -255,16 +259,17 @@ func (h *authHandler) LogoutHandler(c *gin.Context) {
 }
 
 // LogoutHandler godoc
-//	@Summary		Refresh token
-//	@Description	Refresh token
-//	@Tags			auth
-//	@Accept			json
-//	@Produce		json
-//	@Success		200	{object}	schemas.AuthRefreshResponse
-//	@Failure		401	{object}	schemas.APIResponse
-//	@Failure		500	{object}	schemas.APIResponse
-//	@Router			/auth/refresh_token [get]
-//	@Security		BearerAuth
+
+// @Summary		Refresh token
+// @Description	Refresh token
+// @Tags			auth
+// @Accept			json
+// @Produce		json
+// @Success		200	{object}	schemas.AuthRefreshResponse
+// @Failure		401	{object}	schemas.APIResponse
+// @Failure		500	{object}	schemas.APIResponse
+// @Router			/auth/refresh_token [get]
+// @Security		BearerAuth
 func (h *authHandler) RefreshTokenHandler(ctx *gin.Context) {
 	refreshToken := ctx.MustGet(middleware.AuthorizationHeaderToken).(string)
 
