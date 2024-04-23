@@ -6,8 +6,26 @@ import (
 	util "khiemle.dev/golang-api-template/pkg/util"
 
 	"github.com/rs/zerolog/log"
+
+	_ "khiemle.dev/golang-api-template/docs"
 )
 
+//	@title			Golang API Template
+//	@version		0.1.0
+//	@description	This is the template for Golang API.
+//	@termsOfService	http://swagger.io/terms/
+
+//	@contact.name	Khiem Le
+//	@contact.url	https://khiemle.dev
+//	@contact.email	khiemledev@gmail.com
+
+//	@host		localhost:8085
+//	@BasePath	/v1
+
+//	@securityDefinitions.apiKey	BearerAuth
+//	@in							header
+//	@name						Authorization
+//	@description				Enter JWT Bearer token
 func main() {
 	cfg, err := util.LoadConfig(".")
 	if err != nil {
