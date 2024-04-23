@@ -4,4 +4,10 @@ dev-server:
 pre-commit:
 	pre-commit run --all-files
 
-PHONY: start-dev pre-commit
+swagger:
+	swag init --dir cmd/api/,internal/schemas/,internal/auth/handler
+
+swagger_format:
+	swag fmt --dir cmd/api/,internal/schemas/,internal/auth/handler
+
+PHONY: start-dev pre-commit swagger swagger_format

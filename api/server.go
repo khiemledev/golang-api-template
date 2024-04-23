@@ -1,10 +1,13 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"gorm.io/gorm"
 	"khiemle.dev/golang-api-template/api/routes"
 	_authHandler "khiemle.dev/golang-api-template/internal/auth/handler"
@@ -46,7 +49,7 @@ func (s *Server) StartServer() error {
 	return s.router.Run(s.cfg.HTTPServerAddress)
 }
 
-// Setup routes for the server.
+// setupRoutes sets up the routes for the server.
 func (s *Server) setupRoutes() {
 	log.Info().Msg("Setting up routes...")
 
@@ -79,6 +82,9 @@ func (s *Server) setupRoutes() {
 		authGroup := v1.Group("/auth")
 		routes.SetupAuthRouter(authGroup, authHandler, tokenMaker, loginSessionService, userService)
 	}
+
+	log.Info().Msg("Setup routes for Swagger")
+	v1.GET(fmt.Sprintf("/%s/*any", s.cfg.SwaggerURL), ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	log.Info().Msg("Routes setup complete!")
 }

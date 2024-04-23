@@ -21,8 +21,8 @@ type AuthLoginResponse struct {
 	LoginSessionID        uint                  `json:"login_session_id" binding:"required"`
 	AccessToken           string                `json:"access_token" binding:"required"`
 	RefreshToken          string                `json:"refresh_token" binding:"required"`
-	AccessTokenExpiresIn  time.Duration         `json:"access_token_expires_in" binding:"required"`
-	RefreshTokenExpiresIn time.Duration         `json:"refresh_token_expires_in" binding:"required"`
+	AccessTokenExpiresIn  time.Duration         `json:"access_token_expires_in" binding:"required" swaggertype:"primitive,integer"`
+	RefreshTokenExpiresIn time.Duration         `json:"refresh_token_expires_in" binding:"required" swaggertype:"primitive,integer"`
 }
 
 type AuthRegisterRequest struct {
@@ -45,5 +45,5 @@ type AuthRefreshResponse struct {
 	User                 AuthLoginUserResponse `json:"user"`
 	LoginSessionID       uint                  `json:"login_session_id" binding:"required"`
 	AccessToken          string                `json:"access_token" binding:"required"`
-	AccessTokenExpiresIn time.Duration         `json:"access_token_expires_in" binding:"required"`
+	AccessTokenExpiresIn time.Duration         `json:"access_token_expires_in" binding:"required" swaggertype:"primitive,integer"`
 }

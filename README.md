@@ -132,5 +132,5 @@ You can modify environment in the file `docker/app.env`.
 
 - [ ] Add cache for login session and user
 - [ ] Add rate limit
-- [ ] Revoke token
-- [ ] Refresh token
+- [x] Revoke token
+- [x] Refresh token

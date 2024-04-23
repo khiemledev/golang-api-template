@@ -1,0 +1,276 @@
+basePath: /v1
+definitions:
+  schemas.APIResponse:
+    properties:
+      data: {}
+      message:
+        type: string
+      status:
+        type: integer
+    required:
+    - message
+    - status
+    type: object
+  schemas.AuthLoginRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  schemas.AuthLoginResponse:
+    properties:
+      access_token:
+        type: string
+      access_token_expires_in:
+        type: integer
+      login_session_id:
+        type: integer
+      message:
+        type: string
+      refresh_token:
+        type: string
+      refresh_token_expires_in:
+        type: integer
+      status:
+        type: integer
+      user:
+        $ref: '#/definitions/schemas.AuthLoginUserResponse'
+    required:
+    - access_token
+    - access_token_expires_in
+    - login_session_id
+    - message
+    - refresh_token
+    - refresh_token_expires_in
+    - status
+    type: object
+  schemas.AuthLoginUserResponse:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      username:
+        type: string
+    required:
+    - email
+    - id
+    - name
+    - username
+    type: object
+  schemas.AuthRefreshResponse:
+    properties:
+      access_token:
+        type: string
+      access_token_expires_in:
+        type: integer
+      login_session_id:
+        type: integer
+      message:
+        type: string
+      status:
+        type: integer
+      user:
+        $ref: '#/definitions/schemas.AuthLoginUserResponse'
+    required:
+    - access_token
+    - access_token_expires_in
+    - login_session_id
+    - message
+    - status
+    type: object
+  schemas.AuthRegisterRequest:
+    properties:
+      confirm_password:
+        type: string
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - confirm_password
+    - email
+    - name
+    - password
+    - username
+    type: object
+  schemas.AuthRegisterResponse:
+    properties:
+      created_user_id:
+        type: integer
+      message:
+        type: string
+      status:
+        type: integer
+    required:
+    - created_user_id
+    - message
+    - status
+    type: object
+host: localhost:8085
+info:
+  contact:
+    email: khiemledev@gmail.com
+    name: Khiem Le
+    url: https://khiemle.dev
+  description: This is the template for Golang API.
+  termsOfService: http://swagger.io/terms/
+  title: Golang API Template
+  version: 0.1.0
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Login with username and password
+      parameters:
+      - description: Enter username and password
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.AuthLoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.AuthLoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/schemas.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.APIResponse'
+      summary: Login with username and password
+      tags:
+      - auth
+  /auth/logout:
+    get:
+      consumes:
+      - application/json
+      description: Logout
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/schemas.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Logout
+      tags:
+      - auth
+  /auth/refresh_token:
+    get:
+      consumes:
+      - application/json
+      description: Refresh token
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.AuthRefreshResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/schemas.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Refresh token
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Register new user
+      parameters:
+      - description: Enter user information
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.AuthRegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.AuthRegisterResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schemas.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.APIResponse'
+      summary: Register new user
+      tags:
+      - auth
+  /auth/verify_access_token:
+    get:
+      consumes:
+      - application/json
+      description: Verify access token
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.AuthLoginUserResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/schemas.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/schemas.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Verify access token
+      tags:
+      - auth
+securityDefinitions:
+  BearerAuth:
+    description: Enter JWT Bearer token
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
