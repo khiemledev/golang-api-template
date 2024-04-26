@@ -53,10 +53,7 @@ Clone this repo and install dependencies:
     curl http://127.0.0.1:8080
     ```
 
-
 You can modify environment in the file `cmd/api/app.env`.
-
-
 
 ## Generate Swagger documentation
 
@@ -109,7 +106,6 @@ swag init
     pre-commit run --all-files
     ```
 
-
 ## Docker
 
 To start the server using docker, using the following command:
@@ -127,10 +123,10 @@ docker compose -f docker/docker-compose.yaml up -d
 
 You can modify environment in the file `docker/app.env`.
 
-
 ## Todo
 
 - [ ] Add cache for login session and user
 - [ ] Add rate limit
+- [ ] Refresh token rotation
 - [x] Revoke token
 - [x] Refresh token
