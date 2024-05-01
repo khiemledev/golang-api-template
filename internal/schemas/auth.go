@@ -40,10 +40,12 @@ type AuthRegisterResponse struct {
 }
 
 type AuthRefreshResponse struct {
-	Status               int                   `json:"status" binding:"required"`
-	Message              string                `json:"message" binding:"required"`
-	User                 AuthLoginUserResponse `json:"user"`
-	LoginSessionID       uint                  `json:"login_session_id" binding:"required"`
-	AccessToken          string                `json:"access_token" binding:"required"`
-	AccessTokenExpiresIn time.Duration         `json:"access_token_expires_in" binding:"required" swaggertype:"primitive,integer"`
+	Status                int                   `json:"status" binding:"required"`
+	Message               string                `json:"message" binding:"required"`
+	User                  AuthLoginUserResponse `json:"user"`
+	LoginSessionID        uint                  `json:"login_session_id" binding:"required"`
+	AccessToken           string                `json:"access_token" binding:"required"`
+	AccessTokenExpiresIn  time.Duration         `json:"access_token_expires_in" binding:"required" swaggertype:"primitive,integer"`
+	RefreshToken          string                `json:"refresh_token" binding:"required"`
+	RefreshTokenExpiresIn time.Duration         `json:"refresh_token_expires_in" binding:"required" swaggertype:"primitive,integer"`
 }

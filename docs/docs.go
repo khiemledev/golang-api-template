@@ -339,6 +339,8 @@ const docTemplate = `{
                 "access_token_expires_in",
                 "login_session_id",
                 "message",
+                "refresh_token",
+                "refresh_token_expires_in",
                 "status"
             ],
             "properties": {
@@ -353,6 +355,12 @@ const docTemplate = `{
                 },
                 "message": {
                     "type": "string"
+                },
+                "refresh_token": {
+                    "type": "string"
+                },
+                "refresh_token_expires_in": {
+                    "type": "integer"
                 },
                 "status": {
                     "type": "integer"
@@ -411,7 +419,7 @@ const docTemplate = `{
     },
     "securityDefinitions": {
         "BearerAuth": {
-            "description": "Enter JWT Bearer token",
+            "description": "Enter JWT ***",
             "type": "apiKey",
             "name": "Authorization",
             "in": "header"

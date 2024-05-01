@@ -333,6 +333,8 @@
                 "access_token_expires_in",
                 "login_session_id",
                 "message",
+                "refresh_token",
+                "refresh_token_expires_in",
                 "status"
             ],
             "properties": {
@@ -347,6 +349,12 @@
                 },
                 "message": {
                     "type": "string"
+                },
+                "refresh_token": {
+                    "type": "string"
+                },
+                "refresh_token_expires_in": {
+                    "type": "integer"
                 },
                 "status": {
                     "type": "integer"
@@ -405,7 +413,7 @@
     },
     "securityDefinitions": {
         "BearerAuth": {
-            "description": "Enter JWT Bearer token",
+            "description": "Enter JWT ***",
             "type": "apiKey",
             "name": "Authorization",
             "in": "header"

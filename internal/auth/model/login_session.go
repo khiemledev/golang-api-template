@@ -18,6 +18,7 @@ type LoginSession struct {
 	ClientIP              string     `json:"client_ip" gorm:"not null"`
 	AccessTokenExpiresIn  time.Time  `json:"access_token_expires_in" gorm:"not null"`
 	RefreshTokenExpiresIn time.Time  `json:"refresh_token_expires_in" gorm:"not null"`
+	LastUsedAt            *time.Time `json:"last_used_at"`
 	CreatedAt             time.Time  `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt             time.Time  `json:"updated_at" gorm:"autoUpdateTime"`
 	DeletedAt             *time.Time `json:"deleted_at" gorm:"index"`

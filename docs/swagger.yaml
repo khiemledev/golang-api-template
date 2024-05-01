@@ -74,6 +74,10 @@ definitions:
         type: integer
       message:
         type: string
+      refresh_token:
+        type: string
+      refresh_token_expires_in:
+        type: integer
       status:
         type: integer
       user:
@@ -83,6 +87,8 @@ definitions:
     - access_token_expires_in
     - login_session_id
     - message
+    - refresh_token
+    - refresh_token_expires_in
     - status
     type: object
   schemas.AuthRegisterRequest:
@@ -269,7 +275,7 @@ paths:
       - auth
 securityDefinitions:
   BearerAuth:
-    description: Enter JWT Bearer token
+    description: Enter JWT ***
     in: header
     name: Authorization
     type: apiKey

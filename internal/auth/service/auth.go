@@ -22,10 +22,12 @@ type LoginByUserNamePasswordData struct {
 }
 
 type RefreshTokenData struct {
-	LoginSessionID       uint
-	Payload              *token.TokenPayload
-	AccessToken          string
-	AccessTokenExpiresIn time.Duration
+	LoginSessionID        uint
+	Payload               *token.TokenPayload
+	AccessToken           string
+	AccessTokenExpiresIn  time.Duration
+	RefreshToken          string
+	RefreshTokenExpiresIn time.Duration
 }
 
 type AuthService interface {
@@ -121,21 +123,38 @@ func (s *authService) RefreshToken(ctx *gin.Context, refreshToken string) (*mode
 		return nil, nil, err
 	}
 
-	exp := time.Duration(s.cfg.AccessTokenExpiryInHours) * time.Hour
-	accessToken, err := s.tokenMaker.GenerateToken(payload, exp)
+	// generate access token
+	accessTokenExp := time.Duration(s.cfg.AccessTokenExpiryInHours) * time.Hour
+	accessTokenExpIn := time.Now().Add(accessTokenExp)
+	accessToken, err := s.tokenMaker.GenerateToken(payload, accessTokenExp)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	loginSession, err = s.loginSessionService.UpdateAccessToken(ctx, loginSession.ID, accessToken, time.Now().Add(exp))
+	// do refresh token rotation
+	refreshTokenExp := time.Duration(s.cfg.RefreshTokenExpiryInHours) * time.Hour
+	refreshTokenExpIn := time.Now().Add(refreshTokenExp)
+	newRefreshToken, err := s.tokenMaker.GenerateToken(payload, refreshTokenExp)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	loginSession, err = s.loginSessionService.UpdateSession(ctx, loginSession.ID, UpdateLoginSessionArgs{
+		AccessToken:           &accessToken,
+		AccessTokenExpiresIn:  &accessTokenExpIn,
+		RefreshToken:          &newRefreshToken,
+		RefreshTokenExpiresIn: &refreshTokenExpIn,
+	})
 	if err != nil {
 		return nil, nil, err
 	}
 
 	return user, &RefreshTokenData{
-		LoginSessionID:       loginSession.ID,
-		Payload:              payload,
-		AccessToken:          accessToken,
-		AccessTokenExpiresIn: exp,
+		LoginSessionID:        loginSession.ID,
+		Payload:               payload,
+		AccessToken:           accessToken,
+		RefreshToken:          newRefreshToken,
+		AccessTokenExpiresIn:  accessTokenExp,
+		RefreshTokenExpiresIn: refreshTokenExp,
 	}, nil
 }

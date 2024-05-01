@@ -9,11 +9,30 @@ import (
 	"khiemle.dev/golang-api-template/internal/auth/model"
 )
 
+type CreateLoginSessionArgs struct {
+	TokenID               uuid.UUID
+	UserId                uint
+	UserAgent             string
+	ClientIP              string
+	AccessToken           string
+	RefreshToken          string
+	AccessTokenExpiresIn  time.Time
+	RefreshTokenExpiresIn time.Time
+}
+
+type UpdateLoginSessionArgs struct {
+	AccessToken           *string
+	RefreshToken          *string
+	AccessTokenExpiresIn  *time.Time
+	RefreshTokenExpiresIn *time.Time
+	LastUsedAt            *time.Time
+}
+
 type LoginSessionService interface {
-	Create(c *gin.Context, tokenID uuid.UUID, userId uint, userAgent string, clientIP string, accessToken string, refreshToken string, accessTokenExpiresIn time.Time, refreshTokenExpiresIn time.Time) (*model.LoginSession, error)
+	Create(c *gin.Context, args CreateLoginSessionArgs) (*model.LoginSession, error)
 	FindById(c *gin.Context, id uint) (*model.LoginSession, error)
 	FindByTokenID(c *gin.Context, tokenID uuid.UUID) (*model.LoginSession, error)
-	UpdateAccessToken(c *gin.Context, id uint, accessToken string, accessTokenExpiresIn time.Time) (*model.LoginSession, error)
+	UpdateSession(c *gin.Context, id uint, args UpdateLoginSessionArgs) (*model.LoginSession, error)
 	DeleteByTokenID(c *gin.Context, tokenID uuid.UUID) error
 }
 
@@ -39,28 +58,47 @@ func (s *loginSessionService) FindByTokenID(c *gin.Context, tokenID uuid.UUID) (
 	return &loginSession, tx.Error
 }
 
-func (s *loginSessionService) Create(c *gin.Context, tokenID uuid.UUID, userId uint, userAgent string, clientIP string, accessToken string, refreshToken string, accessTokenExpiresIn time.Time, refreshTokenExpiresIn time.Time) (*model.LoginSession, error) {
+func (s *loginSessionService) Create(c *gin.Context, args CreateLoginSessionArgs) (*model.LoginSession, error) {
 	loginSession := model.LoginSession{
-		TokenID:               tokenID,
-		UserId:                userId,
-		UserAgent:             userAgent,
-		ClientIP:              clientIP,
-		AccessToken:           accessToken,
-		RefreshToken:          refreshToken,
-		AccessTokenExpiresIn:  accessTokenExpiresIn,
-		RefreshTokenExpiresIn: refreshTokenExpiresIn,
+		TokenID:               args.TokenID,
+		UserId:                args.UserId,
+		UserAgent:             args.UserAgent,
+		ClientIP:              args.ClientIP,
+		AccessToken:           args.AccessToken,
+		RefreshToken:          args.RefreshToken,
+		AccessTokenExpiresIn:  args.AccessTokenExpiresIn,
+		RefreshTokenExpiresIn: args.RefreshTokenExpiresIn,
 	}
 	tx := s.db.Create(&loginSession)
 	return &loginSession, tx.Error
 }
 
-func (s *loginSessionService) UpdateAccessToken(c *gin.Context, id uint, accessToken string, accessTokenExpiresIn time.Time) (*model.LoginSession, error) {
+func (s *loginSessionService) UpdateSession(c *gin.Context, id uint, args UpdateLoginSessionArgs) (*model.LoginSession, error) {
 	loginSession := model.LoginSession{}
-	tx := s.db.Model(&loginSession).
-		Where("id = ?", id).
-		Update("access_token", accessToken).
-		Update("access_token_expires_in", accessTokenExpiresIn)
-	return &loginSession, tx.Error
+	err := s.db.Transaction(func(tx *gorm.DB) error {
+		err := tx.First(&loginSession, "id = ?", id).Error
+		if err != nil {
+			return err
+		}
+
+		if args.AccessToken != nil {
+			loginSession.AccessToken = *args.AccessToken
+		}
+		if args.RefreshToken != nil {
+			loginSession.RefreshToken = *args.RefreshToken
+		}
+		if args.AccessTokenExpiresIn != nil {
+			loginSession.AccessTokenExpiresIn = *args.AccessTokenExpiresIn
+		}
+		if args.RefreshTokenExpiresIn != nil {
+			loginSession.RefreshTokenExpiresIn = *args.RefreshTokenExpiresIn
+		}
+		if args.LastUsedAt != nil {
+			loginSession.LastUsedAt = args.LastUsedAt
+		}
+		return tx.Save(&loginSession).Error
+	})
+	return &loginSession, err
 }
 
 func (s *loginSessionService) DeleteByTokenID(c *gin.Context, tokenID uuid.UUID) error {

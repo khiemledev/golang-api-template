@@ -93,14 +93,16 @@ func (h *authHandler) LoginHandler(c *gin.Context) {
 
 	loginSession, err := h.loginSessionService.Create(
 		c,
-		data.Payload.TokenID,
-		user.ID,
-		c.Request.UserAgent(),
-		c.ClientIP(),
-		data.AccessToken,
-		data.RefreshToken,
-		time.Now().Add(data.AccessTokenExpiresIn),
-		time.Now().Add(data.RefreshTokenExpiresIn),
+		service.CreateLoginSessionArgs{
+			TokenID:               data.Payload.TokenID,
+			UserId:                user.ID,
+			UserAgent:             c.Request.UserAgent(),
+			ClientIP:              c.ClientIP(),
+			AccessToken:           data.AccessToken,
+			RefreshToken:          data.RefreshToken,
+			AccessTokenExpiresIn:  time.Now().Add(data.AccessTokenExpiresIn),
+			RefreshTokenExpiresIn: time.Now().Add(data.RefreshTokenExpiresIn),
+		},
 	)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, schemas.APIResponse{
@@ -294,8 +296,10 @@ func (h *authHandler) RefreshTokenHandler(ctx *gin.Context) {
 			Username: user.Username,
 			Email:    user.Email,
 		},
-		LoginSessionID:       data.LoginSessionID,
-		AccessToken:          data.AccessToken,
-		AccessTokenExpiresIn: data.AccessTokenExpiresIn,
+		LoginSessionID:        data.LoginSessionID,
+		AccessToken:           data.AccessToken,
+		AccessTokenExpiresIn:  data.AccessTokenExpiresIn,
+		RefreshToken:          data.RefreshToken,
+		RefreshTokenExpiresIn: data.RefreshTokenExpiresIn,
 	})
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
@@ -97,6 +98,21 @@ func VerifyTokenMiddleware(tokenMaker token.TokenMaker, loginSessionService serv
 			return
 		}
 		log.Info().Msgf("Login session found: %d", loginSession.ID)
+
+		// update last login time of login session
+		lastUsedAt := time.Now()
+		loginSession, err = loginSessionService.UpdateSession(ctx, loginSession.ID, service.UpdateLoginSessionArgs{
+			LastUsedAt: &lastUsedAt,
+		})
+		if err != nil {
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, schemas.APIResponse{
+				Status:  http.StatusUnauthorized,
+				Message: err.Error(),
+				Data:    nil,
+			})
+			return
+		}
+		log.Info().Msgf("Login session updated: %d", loginSession.ID)
 
 		// Get current logged in user
 		user, err := userService.GetUserById(ctx, loginSession.UserId)
