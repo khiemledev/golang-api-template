@@ -125,9 +125,9 @@ You can modify environment in the file `docker/app.env`.
 
 ## Todo
 
-- [ ] Track last used of login session, delete after period of time not used
+- [x] Track last used of login session, delete after period of time not used
 - [ ] Add cache for login session and user
 - [ ] Add rate limit
-- [ ] Refresh token rotation
+- [x] Refresh token rotation
 - [x] Revoke token
 - [x] Refresh token
